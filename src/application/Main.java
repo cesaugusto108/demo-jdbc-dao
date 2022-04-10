@@ -2,28 +2,15 @@ package application;
 
 import model.dao.DaoFactory;
 import model.dao.SalespersonDao;
-import model.entities.Department;
 import model.entities.Salesperson;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class Main {
 
-    public static void main(String[] args) throws ParseException {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
-        Department department = new Department(7, "Auto");
-        System.out.println(department);
+    public static void main(String[] args) {
+        SalespersonDao salespersonDao = DaoFactory.createSalespersonDao();
 
-        Salesperson salesperson = new Salesperson(
-                1,
-                "Joseph Smith",
-                "joseph@email.com",
-                new Date(simpleDateFormat.parse("01/01/1988").getTime()),
-                3000.00,
-                7,
-                department);
+        Salesperson salesperson = salespersonDao.findById(1);
+
         System.out.println(salesperson);
     }
 }

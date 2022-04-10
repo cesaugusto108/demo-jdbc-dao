@@ -102,6 +102,6 @@ public class Salesperson implements Serializable {
                 + "Email: " + email + ";\n"
                 + "Birth date: " + birthDate + ";\n"
                 + "Base salary: " + baseSalary + ";\n"
-                + "Department id: " + departmentId;
+                + "Department: " + department;
     }
 }
