@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SalespersonDaoJDBC implements SalespersonDao {
@@ -51,7 +52,7 @@ public class SalespersonDaoJDBC implements SalespersonDao {
             if (resultSet.next()) {
                 Department department = instantiateDepartment(resultSet);
 
-                return instantiateSalesperson(resultSet, department);
+                return instantiateSalesperson(resultSet);
             }
         } catch (SQLException e) {
             throw new DBException(e.getMessage());
@@ -68,14 +69,48 @@ public class SalespersonDaoJDBC implements SalespersonDao {
         return null;
     }
 
-    private Salesperson instantiateSalesperson(ResultSet resultSet, Department department) throws SQLException {
+    @Override
+    public List<Salesperson> findByDepartment(Integer departmentId) {
+        ResultSet resultSet = null;
+        try (PreparedStatement preparedStatement = CONNECTION
+                .prepareStatement("""
+                        SELECT salesperson.*, department.name as DepName
+                        FROM salesperson INNER JOIN department
+                        ON salesperson.DepartmentId = departmentId
+                        WHERE departmentId = ?
+                        ORDER by name""")){
+
+            preparedStatement.setInt(1, departmentId);
+            resultSet = preparedStatement.executeQuery();
+
+            List<Salesperson> salespersonList = new ArrayList<>();
+            while (resultSet.next()) {
+                Salesperson salesperson = instantiateSalesperson(resultSet);
+                salespersonList.add(salesperson);
+            }
+            return salespersonList;
+
+        } catch (SQLException e) {
+            throw new DBException(e.getMessage());
+        } finally {
+            if (resultSet != null) {
+                try {
+                    resultSet.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private Salesperson instantiateSalesperson(ResultSet resultSet) throws SQLException {
         Salesperson salesperson = new Salesperson();
         salesperson.setId(resultSet.getInt("Id"));
         salesperson.setName(resultSet.getString("Name"));
         salesperson.setEmail(resultSet.getString("Email"));
         salesperson.setBirthDate(resultSet.getDate("BirthDate"));
         salesperson.setBaseSalary(resultSet.getDouble("BaseSalary"));
-        salesperson.setDepartment(department);
+        salesperson.setDepartment(new Department(resultSet.getInt("Id"), resultSet.getString("DepName")));
 
         return salesperson;
     }
