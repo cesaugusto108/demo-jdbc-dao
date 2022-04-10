@@ -16,5 +16,5 @@ public interface SalespersonDao {
 
     List<Salesperson> findAll();
 
-    List<Salesperson> findByDepartment(Integer departmentId);
+    List<Salesperson> findByDepartment(Department department);
 }

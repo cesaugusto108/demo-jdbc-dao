@@ -10,7 +10,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SalespersonDaoJDBC implements SalespersonDao {
 
@@ -52,7 +54,7 @@ public class SalespersonDaoJDBC implements SalespersonDao {
             if (resultSet.next()) {
                 Department department = instantiateDepartment(resultSet);
 
-                return instantiateSalesperson(resultSet);
+                return instantiateSalesperson(resultSet, department);
             }
         } catch (SQLException e) {
             throw new DBException(e.getMessage());
@@ -70,22 +72,30 @@ public class SalespersonDaoJDBC implements SalespersonDao {
     }
 
     @Override
-    public List<Salesperson> findByDepartment(Integer departmentId) {
+    public List<Salesperson> findByDepartment(Department department) {
         ResultSet resultSet = null;
         try (PreparedStatement preparedStatement = CONNECTION
                 .prepareStatement("""
                         SELECT salesperson.*, department.name as DepName
                         FROM salesperson INNER JOIN department
-                        ON salesperson.DepartmentId = departmentId
+                        ON salesperson.DepartmentId = department.Id
                         WHERE departmentId = ?
                         ORDER by name""")){
 
-            preparedStatement.setInt(1, departmentId);
+            preparedStatement.setInt(1, department.getId());
             resultSet = preparedStatement.executeQuery();
 
             List<Salesperson> salespersonList = new ArrayList<>();
+            Map<Integer, Department> departmentMap = new HashMap<>();
+
             while (resultSet.next()) {
-                Salesperson salesperson = instantiateSalesperson(resultSet);
+                Department dep = departmentMap.get(resultSet.getInt("DepartmentId"));
+                if (dep == null) {
+                    dep = instantiateDepartment(resultSet);
+                    departmentMap.put(resultSet.getInt("DepartmentId"), dep);
+                }
+
+                Salesperson salesperson = instantiateSalesperson(resultSet, dep);
                 salespersonList.add(salesperson);
             }
             return salespersonList;
@@ -103,14 +113,14 @@ public class SalespersonDaoJDBC implements SalespersonDao {
         }
     }
 
-    private Salesperson instantiateSalesperson(ResultSet resultSet) throws SQLException {
+    private Salesperson instantiateSalesperson(ResultSet resultSet, Department department) throws SQLException {
         Salesperson salesperson = new Salesperson();
         salesperson.setId(resultSet.getInt("Id"));
         salesperson.setName(resultSet.getString("Name"));
         salesperson.setEmail(resultSet.getString("Email"));
         salesperson.setBirthDate(resultSet.getDate("BirthDate"));
         salesperson.setBaseSalary(resultSet.getDouble("BaseSalary"));
-        salesperson.setDepartment(new Department(resultSet.getInt("Id"), resultSet.getString("DepName")));
+        salesperson.setDepartment(department);
 
         return salesperson;
     }
@@ -125,6 +135,42 @@ public class SalespersonDaoJDBC implements SalespersonDao {
 
     @Override
     public List<Salesperson> findAll() {
-        return null;
+        ResultSet resultSet = null;
+        try (PreparedStatement preparedStatement = CONNECTION
+                .prepareStatement("""
+                        SELECT salesperson.*, department.name as DepName
+                        FROM salesperson INNER JOIN department
+                        ON salesperson.DepartmentId = department.Id
+                        ORDER by name""")){
+
+            resultSet = preparedStatement.executeQuery();
+
+            List<Salesperson> salespersonList = new ArrayList<>();
+            Map<Integer, Department> departmentMap = new HashMap<>();
+
+            while (resultSet.next()) {
+                Department dep = departmentMap.get(resultSet.getInt("DepartmentId"));
+                if (dep == null) {
+                    dep = instantiateDepartment(resultSet);
+                    departmentMap.put(resultSet.getInt("DepartmentId"), dep);
+                }
+
+                Salesperson salesperson = instantiateSalesperson(resultSet, dep);
+                salespersonList.add(salesperson);
+            }
+            return salespersonList;
+
+        } catch (SQLException e) {
+            throw new DBException(e.getMessage());
+        } finally {
+            if (resultSet != null) {
+                try {
+                    resultSet.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
     }
 }
