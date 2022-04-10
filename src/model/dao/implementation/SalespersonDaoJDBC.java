@@ -5,10 +5,7 @@ import model.dao.SalespersonDao;
 import model.entities.Department;
 import model.entities.Salesperson;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,7 +21,37 @@ public class SalespersonDaoJDBC implements SalespersonDao {
 
     @Override
     public void insert(Salesperson salesperson) {
+        try (PreparedStatement preparedStatement = CONNECTION
+                .prepareStatement("INSERT INTO salesperson " +
+                                "(Name, Email, BirthDate, BaseSalary, DepartmentId) " +
+                                "VALUES (?, ?, ?, ?, ?)",
+                        Statement.RETURN_GENERATED_KEYS)){
 
+            preparedStatement.setString(1, salesperson.getName());
+            preparedStatement.setString(2, salesperson.getEmail());
+            preparedStatement.setDate(3, salesperson.getBirthDate());
+            preparedStatement.setDouble(4, salesperson.getBaseSalary());
+            preparedStatement.setInt(5, salesperson.getDepartmentId());
+
+            int rowsInserted = preparedStatement.executeUpdate();
+
+            if (rowsInserted > 0) {
+                ResultSet resultSet = preparedStatement.getGeneratedKeys();
+                if (resultSet.next()) {
+                    int id = resultSet.getInt(1);
+                    salesperson.setId(id);
+                }
+
+                if (resultSet != null) {
+                    resultSet.close();
+                }
+            } else {
+                throw new DBException("Unexpected error: no rows inserted.");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -80,7 +107,7 @@ public class SalespersonDaoJDBC implements SalespersonDao {
                         FROM salesperson INNER JOIN department
                         ON salesperson.DepartmentId = department.Id
                         WHERE departmentId = ?
-                        ORDER by name""")){
+                        ORDER by name""")) {
 
             preparedStatement.setInt(1, department.getId());
             resultSet = preparedStatement.executeQuery();
@@ -141,7 +168,7 @@ public class SalespersonDaoJDBC implements SalespersonDao {
                         SELECT salesperson.*, department.name as DepName
                         FROM salesperson INNER JOIN department
                         ON salesperson.DepartmentId = department.Id
-                        ORDER by name""")){
+                        ORDER by name""")) {
 
             resultSet = preparedStatement.executeQuery();
 
