@@ -38,29 +38,20 @@ public class SalespersonDaoJDBC implements SalespersonDao {
     public Salesperson findById(Integer id) {
         ResultSet resultSet = null;
         try (PreparedStatement preparedStatement = CONNECTION
-                .prepareStatement("SELECT salesperson.*, department.Name as DepName\n" +
-                        "FROM salesperson INNER JOIN department\n" +
-                        "ON salesperson.DepartmentId = department.Id\n" +
-                        "WHERE salesperson.Id = ?")) {
+                .prepareStatement("""
+                        SELECT salesperson.*, department.Name as DepName
+                        FROM salesperson INNER JOIN department
+                        ON salesperson.DepartmentId = department.Id
+                        WHERE salesperson.Id = ?""")) {
 
             preparedStatement.setInt(1, id);
             resultSet = preparedStatement.executeQuery();
 
 
             if (resultSet.next()) {
-                Department department = new Department();
-                department.setId(resultSet.getInt("DepartmentId"));
-                department.setName(resultSet.getString("DepName"));
+                Department department = instantiateDepartment(resultSet);
 
-                Salesperson salesperson = new Salesperson();
-                salesperson.setId(resultSet.getInt("Id"));
-                salesperson.setName(resultSet.getString("Name"));
-                salesperson.setEmail(resultSet.getString("Email"));
-                salesperson.setBirthDate(resultSet.getDate("BirthDate"));
-                salesperson.setBaseSalary(resultSet.getDouble("BaseSalary"));
-                salesperson.setDepartment(department);
-
-                return salesperson;
+                return instantiateSalesperson(resultSet, department);
             }
         } catch (SQLException e) {
             throw new DBException(e.getMessage());
@@ -75,6 +66,26 @@ public class SalespersonDaoJDBC implements SalespersonDao {
         }
 
         return null;
+    }
+
+    private Salesperson instantiateSalesperson(ResultSet resultSet, Department department) throws SQLException {
+        Salesperson salesperson = new Salesperson();
+        salesperson.setId(resultSet.getInt("Id"));
+        salesperson.setName(resultSet.getString("Name"));
+        salesperson.setEmail(resultSet.getString("Email"));
+        salesperson.setBirthDate(resultSet.getDate("BirthDate"));
+        salesperson.setBaseSalary(resultSet.getDouble("BaseSalary"));
+        salesperson.setDepartment(department);
+
+        return salesperson;
+    }
+
+    private Department instantiateDepartment(ResultSet resultSet) throws SQLException {
+        Department department = new Department();
+        department.setId(resultSet.getInt("DepartmentId"));
+        department.setName(resultSet.getString("DepName"));
+
+        return department;
     }
 
     @Override
