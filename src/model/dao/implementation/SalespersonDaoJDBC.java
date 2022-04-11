@@ -60,8 +60,7 @@ public class SalespersonDaoJDBC implements SalespersonDao {
                 .prepareStatement("""
                                 UPDATE salesperson
                                 SET Name=?, Email=?, BirthDate=?, BaseSalary=?, DepartmentId=?
-                                WHERE Id=?
-                                """,
+                                WHERE Id=?""",
                         Statement.RETURN_GENERATED_KEYS)) {
 
             preparedStatement.setString(1, salesperson.getName());
@@ -79,7 +78,15 @@ public class SalespersonDaoJDBC implements SalespersonDao {
 
     @Override
     public void deleteById(Integer id) {
-
+        try (PreparedStatement preparedStatement = CONNECTION
+                .prepareStatement("""
+                        DELETE FROM salesperson
+                        WHERE Id = ?""")) {
+            preparedStatement.setInt(1, id);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DBException(e.getMessage());
+        }
     }
 
     @Override

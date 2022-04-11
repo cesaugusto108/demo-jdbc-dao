@@ -6,6 +6,7 @@ import model.entities.Department;
 import model.entities.Salesperson;
 
 import java.text.ParseException;
+import java.util.Scanner;
 
 public class Main {
 
@@ -31,9 +32,16 @@ public class Main {
 //                department);
 //
 //        salespersonDao.insert(salesperson);
-        Salesperson salesperson = salespersonDao.findById(7);
-        salesperson.setDepartment(new Department(3, "Fashion"));
-        salesperson.setBaseSalary(3200.00);
-        salespersonDao.update(salesperson);
+//        Salesperson salesperson = salespersonDao.findById(7);
+//        salesperson.setDepartment(new Department(3, "Fashion"));
+//        salesperson.setBaseSalary(3200.00);
+//        salespersonDao.update(salesperson);
+
+        try (Scanner scn = new Scanner(System.in)){
+            System.out.print("Enter Id: ");
+            int id = scn.nextInt();
+
+            salespersonDao.deleteById(id);
+        }
     }
 }
