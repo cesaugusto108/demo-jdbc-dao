@@ -1,11 +1,10 @@
 package model.dao.implementation;
 
+import db.DBException;
 import model.dao.DepartmentDao;
 import model.entities.Department;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.List;
 
 public class DepartmentDaoJDBC implements DepartmentDao {
@@ -17,7 +16,28 @@ public class DepartmentDaoJDBC implements DepartmentDao {
 
     @Override
     public void insert(Department department) {
+        try (PreparedStatement preparedStatement = CONNECTION
+                .prepareStatement("""
+                INSERT INTO department (Name) VALUES (?)""",
+                        Statement.RETURN_GENERATED_KEYS)){
+            preparedStatement.setString(1, department.getName());
 
+            int rowsInserted = preparedStatement.executeUpdate();
+
+            if (rowsInserted > 0) {
+                ResultSet resultSet = preparedStatement.getGeneratedKeys();
+                if (resultSet.next()) {
+                    int id = resultSet.getInt(1);
+                    department.setId(id);
+                }
+
+                resultSet.close();
+            } else {
+                throw new DBException("Unexpected error: no rows inserted.");
+            }
+        } catch (SQLException e) {
+            throw new DBException(e.getMessage());
+        }
     }
 
     @Override

@@ -42,15 +42,13 @@ public class SalespersonDaoJDBC implements SalespersonDao {
                     salesperson.setId(id);
                 }
 
-                if (resultSet != null) {
-                    resultSet.close();
-                }
+                resultSet.close();
             } else {
                 throw new DBException("Unexpected error: no rows inserted.");
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new DBException(e.getMessage());
         }
     }
 

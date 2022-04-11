@@ -2,13 +2,11 @@ package application;
 
 import model.dao.DaoFactory;
 import model.dao.SalespersonDao;
-import model.entities.Department;
-import model.entities.Salesperson;
 
 import java.text.ParseException;
 import java.util.Scanner;
 
-public class Main {
+public class Program1 {
 
     public static void main(String[] args) throws ParseException {
         SalespersonDao salespersonDao = DaoFactory.createSalespersonDao();
