@@ -3,9 +3,13 @@ package model.dao.implementation;
 import db.DBException;
 import model.dao.DepartmentDao;
 import model.entities.Department;
+import model.entities.Salesperson;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DepartmentDaoJDBC implements DepartmentDao {
     private final Connection CONNECTION;
@@ -102,6 +106,39 @@ public class DepartmentDaoJDBC implements DepartmentDao {
 
     @Override
     public List<Department> findAll() {
-        return null;
+        ResultSet resultSet = null;
+        try (PreparedStatement preparedStatement = CONNECTION
+                .prepareStatement("""
+                        SELECT department.*
+                        FROM department
+                        ORDER by Id""")) {
+
+            resultSet = preparedStatement.executeQuery();
+
+            List<Department> departmentList = new ArrayList<>();
+            Map<Integer, Department> departmentMap = new HashMap<>();
+
+            while (resultSet.next()) {
+                Department dep = departmentMap.get(resultSet.getInt("Id"));
+                if (dep == null) {
+                    departmentMap.put(resultSet.getInt("Id"), dep);
+                    dep = new Department(resultSet.getInt(1), resultSet.getString(2));
+                }
+
+                departmentList.add(dep);
+            }
+            return departmentList;
+
+        } catch (SQLException e) {
+            throw new DBException(e.getMessage());
+        } finally {
+            if (resultSet != null) {
+                try {
+                    resultSet.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }
