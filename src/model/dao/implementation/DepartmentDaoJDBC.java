@@ -18,8 +18,8 @@ public class DepartmentDaoJDBC implements DepartmentDao {
     public void insert(Department department) {
         try (PreparedStatement preparedStatement = CONNECTION
                 .prepareStatement("""
-                INSERT INTO department (Name) VALUES (?)""",
-                        Statement.RETURN_GENERATED_KEYS)){
+                                INSERT INTO department (Name) VALUES (?)""",
+                        Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setString(1, department.getName());
 
             int rowsInserted = preparedStatement.executeUpdate();
@@ -42,14 +42,26 @@ public class DepartmentDaoJDBC implements DepartmentDao {
 
     @Override
     public void update(Department department) {
+        try (PreparedStatement preparedStatement = CONNECTION
+                .prepareStatement("""
+                                UPDATE department
+                                SET NAME=?
+                                WHERE ID=?""",
+                        Statement.RETURN_GENERATED_KEYS)) {
+            preparedStatement.setString(1, department.getName());
+            preparedStatement.setInt(2, department.getId());
 
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void deleteById(Integer id) {
         try (PreparedStatement preparedStatement = CONNECTION.prepareStatement("""
                 DELETE FROM department
-                WHERE Id = ?""")){
+                WHERE Id = ?""")) {
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
