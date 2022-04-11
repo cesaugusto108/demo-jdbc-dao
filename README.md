@@ -1,2 +1,2 @@
 # demo-jdbc-dao
-JDBC Project
+JDBC Project (Curso Udemy Java OOP Prof. Nélio Alves)
