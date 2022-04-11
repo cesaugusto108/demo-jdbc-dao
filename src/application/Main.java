@@ -5,10 +5,7 @@ import model.dao.SalespersonDao;
 import model.entities.Department;
 import model.entities.Salesperson;
 
-import java.sql.Date;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.List;
 
 public class Main {
 
@@ -24,15 +21,19 @@ public class Main {
 //        List<Salesperson> listAll = salespersonDao.findAll();
 //        listAll.forEach(x -> System.out.println(x + "\n"));
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
-        Department department = new Department(3, "Fashion");
-        Salesperson salesperson = new Salesperson(null,
-                "Lisa Yellow",
-                "lisa@email.com",
-                new Date(simpleDateFormat.parse("21/09/2001").getTime()),
-                1150.00, department.getId(),
-                department);
-
-        salespersonDao.insert(salesperson);
+//        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
+//        Department department = new Department(3, "Fashion");
+//        Salesperson salesperson = new Salesperson(null,
+//                "Lisa Yellow",
+//                "lisa@email.com",
+//                new Date(simpleDateFormat.parse("21/09/2001").getTime()),
+//                1150.00, department.getId(),
+//                department);
+//
+//        salespersonDao.insert(salesperson);
+        Salesperson salesperson = salespersonDao.findById(7);
+        salesperson.setDepartment(new Department(3, "Fashion"));
+        salesperson.setBaseSalary(3200.00);
+        salespersonDao.update(salesperson);
     }
 }

@@ -25,7 +25,7 @@ public class SalespersonDaoJDBC implements SalespersonDao {
                 .prepareStatement("INSERT INTO salesperson " +
                                 "(Name, Email, BirthDate, BaseSalary, DepartmentId) " +
                                 "VALUES (?, ?, ?, ?, ?)",
-                        Statement.RETURN_GENERATED_KEYS)){
+                        Statement.RETURN_GENERATED_KEYS)) {
 
             preparedStatement.setString(1, salesperson.getName());
             preparedStatement.setString(2, salesperson.getEmail());
@@ -56,7 +56,25 @@ public class SalespersonDaoJDBC implements SalespersonDao {
 
     @Override
     public void update(Salesperson salesperson) {
+        try (PreparedStatement preparedStatement = CONNECTION
+                .prepareStatement("""
+                                UPDATE salesperson
+                                SET Name=?, Email=?, BirthDate=?, BaseSalary=?, DepartmentId=?
+                                WHERE Id=?
+                                """,
+                        Statement.RETURN_GENERATED_KEYS)) {
 
+            preparedStatement.setString(1, salesperson.getName());
+            preparedStatement.setString(2, salesperson.getEmail());
+            preparedStatement.setDate(3, salesperson.getBirthDate());
+            preparedStatement.setDouble(4, salesperson.getBaseSalary());
+            preparedStatement.setInt(5, salesperson.getDepartment().getId());
+            preparedStatement.setInt(6, salesperson.getId());
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
